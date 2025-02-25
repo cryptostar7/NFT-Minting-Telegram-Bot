@@ -53,8 +53,16 @@ async function handleNFTOperations(userState, photoFileId, ctx) {
 
         await transaction.wait();
 
+        let contractAddress = await factory.existAddress(userState.tokenName);
+        let tokenId = Number(await factory.idCount(userState.tokenName)) - 1;
+
+        console.log("Contract Address:", typeof contractAddress);
+        console.log("Token ID:", typeof tokenId);
+
         return {
-            success: true
+            success: true,
+            contractAddress: contractAddress,
+            tokenId: tokenId,
         };
     } catch (error) {
         return {

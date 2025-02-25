@@ -90,7 +90,7 @@ bot.on('photo', async (ctx) => {
         const result = await handleNFTOperations(userState, photo.file_id, ctx);
         
         if (result.success) {
-            ctx.reply(`Success! Transaction: ${result.tokenUri}`);
+            ctx.reply(`Success!\nYour token was minted at ${result.contractAddress} with token ID ${result.tokenId}`);
         } else {
             ctx.reply(`Error: ${result.error}`);
         }
