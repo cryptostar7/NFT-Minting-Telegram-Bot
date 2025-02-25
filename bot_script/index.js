@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { Telegraf } = require('telegraf');
-const { handleNFTOperations } = require('./nft');
+const { handleNFTOperations, getExistingNFTList } = require('./nft');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
@@ -18,7 +18,7 @@ bot.command('start', (ctx) => {
     });
 });
 
-bot.on('callback_query', (ctx) => {
+bot.on('callback_query', async (ctx) => {
     const action = ctx.callbackQuery.data;
     const userId = ctx.from.id;
 
@@ -28,8 +28,29 @@ bot.on('callback_query', (ctx) => {
         userStates[userId] = { action: 'generate_nft' };
         ctx.reply('Please enter the Token Name:');
     } else if (action === 'mint_existing') {
-        userStates[userId] = { action: 'mint_existing' };
-        ctx.reply('Please enter the existing Token Name you want to mint more of:');
+        // Get existing NFT list
+        const existingNFTs = await getExistingNFTList();
+
+        // Create inline keyboard buttons from NFT List
+        const nftButtons = existingNFTs.map(nft => [{
+            text: nft,
+            callback_data: `select_nft:${nft}`
+        }])
+
+        ctx.reply('Select an existing NFT to mint:', {
+            reply_markup: {
+                inline_keyboard: nftButtons
+            }
+        });
+    } else if (action.startsWith('select_nft:')) {
+        const selectedNFT = action.split(':')[1];
+
+        console.log("Selected NFT:", selectedNFT);
+        userStates[userId] = {
+            action: 'mint_existing',
+            tokenName: selectedNFT
+        };
+        ctx.reply('Please enter the description for your NFT:');
     }
 });
 
@@ -51,10 +72,7 @@ bot.on('text', async (ctx) => {
             ctx.reply('Please upload the Token Image:');
         }
     } else if (userState.action === 'mint_existing') {
-        if (!userState.tokenName) {
-            userState.tokenName = ctx.message.text;
-            ctx.reply('Please enter the description for your NFT:');
-        } else if (!userState.description) {
+        if (!userState.description) {
             userState.description = ctx.message.text;
             ctx.reply('Please upload the new Token Image:');
         }

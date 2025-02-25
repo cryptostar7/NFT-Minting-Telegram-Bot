@@ -3,6 +3,10 @@ const { uploadToIPFS, createMetadata } = require('./metadata');
 const FACTORY_ABI = require('./factoryAbi.json');
 
 const FACTORY_CONTRACT_ADDRESS = process.env.FACTORY_CONTRACT_ADDRESS;
+// Connect to Ethereum
+const provider = new ethers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL);
+const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+const factory = new ethers.Contract(FACTORY_CONTRACT_ADDRESS, FACTORY_ABI, wallet);
 
 async function handleNFTOperations(userState, photoFileId, ctx) {
     try {
@@ -13,6 +17,8 @@ async function handleNFTOperations(userState, photoFileId, ctx) {
         // Upload image to IPFS
         const imageHash = await uploadToIPFS(imageUrl, true);
 
+        console.log("Image Hash:", imageHash);
+
         // Create and upload metadata
         const metadata = createMetadata(
             userState.tokenName,
@@ -20,14 +26,17 @@ async function handleNFTOperations(userState, photoFileId, ctx) {
             imageHash,
             userState.description
         );
+
+        console.log("Metadata:", metadata);
+
         const tokenUri = await uploadToIPFS(metadata);
 
-        // Connect to Ethereum
-        console.log("RPC URL:", process.env.SEPOLIA_RPC_URL);
-        const provider = new ethers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL);
-        const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-        const factory = new ethers.Contract(FACTORY_CONTRACT_ADDRESS, FACTORY_ABI, wallet);
+        console.log("Token Uri:", tokenUri);
 
+        
+        /**
+         * Generate NFT or Mint Existing NFT
+         */
         let transaction;
         if (userState.action === 'generate_nft') {
             transaction = await factory.createNewNFT(
@@ -45,8 +54,7 @@ async function handleNFTOperations(userState, photoFileId, ctx) {
         await transaction.wait();
 
         return {
-            success: true,
-            transaction: transaction.hash
+            success: true
         };
     } catch (error) {
         return {
@@ -56,6 +64,12 @@ async function handleNFTOperations(userState, photoFileId, ctx) {
     }
 }
 
+async function getExistingNFTList() {
+    const nfts = await factory.getExistingNFTs();
+    return nfts
+}
+
 module.exports = {
-    handleNFTOperations
+    handleNFTOperations,
+    getExistingNFTList
 };
