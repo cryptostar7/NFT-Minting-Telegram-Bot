@@ -4,14 +4,12 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract NFTMinting is ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
-    constructor(string memory name, string memory symbol, string memory _uri)
+contract NFTMinting is ERC721, ERC721URIStorage, ERC721Burnable {
+    constructor(address recipient, string memory name, string memory symbol, string memory _uri)
     ERC721(name, symbol)
-    Ownable(msg.sender)
     {
-        _safeMint(msg.sender, 1);
+        _safeMint(recipient, 1);
 
         _setTokenURI(1, _uri);
     }
