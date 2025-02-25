@@ -4,13 +4,5 @@ This project demonstrates a basic Hardhat use case. It comes with a sample contr
 
 Try running some of the following tasks:
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.js
-```
-
 ### Contract Address
 0xe4B3Ed936E91A9ac9a4d0E973BE08a3A4EfF84f9
