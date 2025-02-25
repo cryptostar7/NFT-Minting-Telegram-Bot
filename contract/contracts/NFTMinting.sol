@@ -1,27 +1,48 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract NFTMinting is ERC721 {
-    uint256 private currentTokenId = 0;
+contract NFTMinting is ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
+    constructor(string memory name, string memory symbol, string memory _uri)
+    ERC721(name, symbol)
+    Ownable(msg.sender)
+    {
+        _safeMint(msg.sender, 1);
 
-    mapping(uint256 => string) private _tokenName;
-    mapping(uint256 => string) private _tokenSymbol;
-    mapping(uint256 => string) private _tokenMetadata;
-
-    constructor() ERC721("NFT", "NFT") {}
-
-    function mint(string memory name, string memory symbol, string memory metadataURI) public {
-        _safeMint(msg.sender, currentTokenId);
-        _tokenName[currentTokenId] = name;
-        _tokenSymbol[currentTokenId] = symbol;
-        _tokenMetadata[currentTokenId] = metadataURI;
-
-        currentTokenId++;
+        _setTokenURI(1, _uri);
     }
 
-    function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        return _tokenMetadata[tokenId];
+    function safeMint(address to, uint256 tokenId, string memory uri)
+        external
+    {
+        _safeMint(to, tokenId);
+        _setTokenURI(tokenId, uri);
+    }
+
+    function burn(uint256 tokenId) public override {
+        _burn(tokenId);
+    }
+
+    // The following functions are overrides required by Solidity.
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override(ERC721, ERC721URIStorage)
+        returns (string memory)
+    {
+        return super.tokenURI(tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721, ERC721URIStorage)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
     }
 }
